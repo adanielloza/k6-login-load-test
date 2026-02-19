@@ -4,5 +4,3 @@
 # VS Code
 .vscode/
 
-# Node (por si agregas algo después)
-node_modules/

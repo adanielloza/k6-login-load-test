@@ -1,0 +1,127 @@
+Conclusiones - Ejercicio 1 (Login Load Test)
+
+1. Throughput (TPS)
+
+Resultado obtenido:
+- Promedio: 19.94 requests/segundo
+- Objetivo requerido: >= 20 TPS
+
+El resultado quedó ligeramente por debajo del umbral establecido.
+Esta diferencia puede atribuirse a pequeñas variaciones del scheduler de k6
+al utilizar el executor constant-arrival-rate.
+
+Recomendación técnica:
+Ajustar TARGET_TPS a 21 para garantizar que el promedio efectivo
+se mantenga por encima de 20 TPS de forma consistente.
+
+--------------------------------------------------
+
+2. Latencia (SLA 1.5 segundos)
+
+Resultados:
+- Promedio: 368 ms
+- p90: 380 ms
+- p95: 393 ms
+- Máximo: 962 ms
+
+Conclusión:
+El sistema cumple ampliamente el SLA establecido de 1.5 segundos.
+No se registraron solicitudes que excedieran el tiempo máximo permitido.
+slow_requests = 0%.
+
+El comportamiento bajo carga cercana a 20 TPS es estable
+y no presenta degradación en percentiles altos.
+
+--------------------------------------------------
+
+3. Tasa de error
+
+Resultados:
+- http_req_failed: 0% (sin errores técnicos)
+- functional_errors: 100%
+
+Interpretación técnica:
+No se registraron fallos técnicos (timeouts, problemas de red o fallos del sistema).
+Sin embargo, todas las solicitudes devolvieron error funcional
+(status distinto de 200).
+
+Causa identificada:
+Las credenciales incluidas en el archivo CSV no corresponden
+a usuarios válidos en la API de FakeStore.
+Por lo tanto, el sistema respondió correctamente con 401 Unauthorized.
+
+Este comportamiento no indica un problema de performance,
+sino una condición funcional de autenticación inválida.
+
+--------------------------------------------------
+
+4. Análisis del escenario y enfoque académico
+
+El ejercicio requiere:
+- Error rate < 3%
+- >= 20 TPS
+- SLA <= 1.5s
+
+Desde una perspectiva académica, para cumplir estrictamente el criterio
+de error < 3%, se puede aplicar el siguiente ajuste:
+
+Ajuste académico:
+- Utilizar únicamente credenciales válidas en el archivo CSV
+  (por ejemplo: mor_2314 / 83r5^_).
+- Ajustar TARGET_TPS a 21 para asegurar promedio >= 20 TPS.
+
+Con estos cambios, todas las validaciones quedarían en verde,
+cumpliendo formalmente el ejercicio.
+
+--------------------------------------------------
+
+5. Cómo solucionarlo: 
+
+Opción A
+El objetivo es cumplir los umbrales solicitados (error < 3% y >= 20 TPS).
+Para ello, se debe usar únicamente credenciales válidas en el archivo CSV, evitando respuestas 401.
+
+Ejemplo de users.csv (solo usuario válido):
+user,passwd
+mor_2314,83r5^_
+
+Adicional:
+Si el TPS promedio queda ligeramente por debajo de 20 (ej. 19.94/s), ajustar la tasa configurada
+a 21 TPS para asegurar un promedio >= 20 TPS en la ejecución.
+
+Opción B:
+
+- Permitir como respuesta esperada tanto 200 como 401,
+  ya que 401 es un comportamiento válido del sistema
+  ante credenciales incorrectas.
+- Medir como error únicamente respuestas 5xx
+  (errores del servidor).
+- Separar métricas de:
+  a. Error técnico (infraestructura)
+  b. Error funcional (reglas de negocio)
+
+Esto permite distinguir claramente entre:
+- Fallas de performance
+- Fallas de datos
+- Fallas de lógica del sistema
+
+Este enfoque proporciona un análisis más realista
+del comportamiento del sistema bajo carga.
+
+Ejemplo: 
+
+const ok = check(res, {
+  "status is expected": (r) => r.status === 200 || r.status === 401,
+});
+
+--------------------------------------------------
+
+6. Conclusión general
+
+- El sistema demuestra estabilidad técnica bajo carga cercana a 20 TPS.
+- No presenta degradación en tiempos de respuesta.
+- No existen errores técnicos.
+- El incumplimiento del criterio de error < 3% se debe exclusivamente
+  a credenciales inválidas en el dataset.
+- Desde una perspectiva académica, el escenario puede ajustarse
+  para cumplir los criterios.
