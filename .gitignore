@@ -1,0 +1,12 @@
+# k6 reports
+reports/*.json
+reports/*.txt
+
+# Mac
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Node (por si agregas algo después)
+node_modules/
