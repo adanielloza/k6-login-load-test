@@ -1,7 +1,3 @@
-# k6 reports
-reports/*.json
-reports/*.txt
-
 # Mac
 .DS_Store
 
